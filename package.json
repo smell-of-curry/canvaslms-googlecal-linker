@@ -1,0 +1,21 @@
+{
+  "name": "canvaslms-google-tasks-link",
+  "description": "Auto Syncs & CanvasLMS Student's ToDo list to Google Tasks",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "run": "ts-node --project tsconfig.json ./src/index.ts"
+  },
+  "keywords": [],
+  "author": "Smell of curry",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "googleapis": "^160.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "ts-node": "^10.9.1"
+  }
+}
