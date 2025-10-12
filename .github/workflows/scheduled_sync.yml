@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+    environment: 
+        name: Scheduled Sync
     env:
       # Non-secret configuration (Repository Variables)
       CANVAS_BASE: ${{ vars.CANVAS_BASE }}
