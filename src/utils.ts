@@ -38,6 +38,15 @@ export function extractCidFromNotes(notes?: string | null): string | undefined {
   return undefined;
 }
 
+export function isCanvasSource(notes?: string | null): boolean {
+  if (!notes) return false;
+  const lines = notes.split(/\r?\n/);
+  for (const line of lines) {
+    if (/^\s*Source:\s*Canvas\s*$/i.test(line)) return true;
+  }
+  return false;
+}
+
 export function isDueDifferent(a?: string | null, b?: string | null): boolean {
   if (!a && !b) return false;
   if (!!a !== !!b) return true;

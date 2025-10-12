@@ -6,7 +6,7 @@ import {
   listAllTasks,
 } from "./google";
 import { filterByWindow, getCanvasTodos, normalizeTodos } from "./canvas";
-import { extractCidFromNotes, isDueDifferent } from "./utils";
+import { extractCidFromNotes, isCanvasSource, isDueDifferent } from "./utils";
 
 (async () => {
   try {
@@ -34,6 +34,23 @@ import { extractCidFromNotes, isDueDifferent } from "./utils";
     let created = 0;
     let updated = 0;
     let skipped = 0;
+    let autocompleted = 0;
+
+    // Auto-complete Google tasks that came from Canvas but are no longer
+    // present in the current Canvas To‑Do list.
+    const currentCanvasCidSet = new Set(normalized.map((t) => t.cid));
+    for (const t of existing) {
+      const cid = extractCidFromNotes(t.notes);
+      if (!cid) continue;
+      if (!isCanvasSource(t.notes)) continue;
+      if (currentCanvasCidSet.has(cid)) continue;
+      await tasks.tasks.patch({
+        tasklist: listId,
+        task: t.id!,
+        requestBody: { status: "completed", completed: new Date().toISOString() },
+      });
+      autocompleted += 1;
+    }
 
     for (const it of scoped) {
       const requestBody: tasks_v1.Schema$Task = {
@@ -65,7 +82,7 @@ import { extractCidFromNotes, isDueDifferent } from "./utils";
     }
 
     console.log(
-      `[Sync] Completed. created=${created} updated=${updated} skipped=${skipped} (windowDays=${windowDays})`
+      `[Sync] Completed. created=${created} updated=${updated} skipped=${skipped} autocompleted=${autocompleted} (windowDays=${windowDays})`
     );
   } catch (err) {
     console.error("[Error]", err);
