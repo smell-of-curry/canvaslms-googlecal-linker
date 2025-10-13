@@ -15,6 +15,12 @@ export const {
 export const REDIRECT_URI = "http://localhost:3000/oauth2callback";
 export const CANVAS_HEADERS = { Authorization: `Bearer ${CANVAS_TOKEN}` };
 
+/**
+ * Validates presence of required environment variables.
+ *
+ * @throws with a helpful message listing missing variables. This is called
+ * after OAuth setup so the program can fail fast with clear guidance.
+ */
 export function validateSyncEnv() {
   const missing: string[] = [];
   if (!CANVAS_BASE) missing.push("CANVAS_BASE");

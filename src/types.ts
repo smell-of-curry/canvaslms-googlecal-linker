@@ -1,3 +1,6 @@
+/**
+ * Minimal Canvas assignment shape as returned by the To‑Do endpoint.
+ */
 export type CanvasAssignment = {
   id: number;
   name: string;
@@ -5,6 +8,9 @@ export type CanvasAssignment = {
   html_url?: string;
 };
 
+/**
+ * Union‑ish Canvas To‑Do item shape covering assignments and generic items.
+ */
 export type CanvasTodo = {
   type: string;
   assignment?: CanvasAssignment;
@@ -15,6 +21,9 @@ export type CanvasTodo = {
   title?: string; // some types may expose a title directly
 };
 
+/**
+ * Internal normalized To‑Do used for syncing into Google Tasks.
+ */
 export type NormalizedTodo = {
   cid: string;
   title: string;
