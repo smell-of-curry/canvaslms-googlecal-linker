@@ -1,39 +1,91 @@
-# Canvas LMS Google Tasks Link
+# Canvas LMS → Google Tasks Link
 
-Auto Syncs a CanvasLMS Student's ToDo list to Google Tasks.
+Sync your Canvas LMS To‑Do list to a Google Tasks list automatically. Built so tasks appear in tools like Reclaim.ai (which reads from Google Tasks) and flow onto your calendar.
 
-Made for use by Reclaim.ai, to streamline my tasks to my Google Calendar.
+![Proof of tasks in Google Tasks](public/proof_of_tasks.png)
 
-## Credentials
+## Features
 
-### Canvas
-#### Personal use (fastest):
+- **Automatic sync**: Pulls Canvas To‑Dos and upserts them into a Google Tasks list.
+- **Idempotent with stable CIDs**: Items are matched by an embedded `CID` so repeated runs don't duplicate.
+- **Updates and auto‑complete**:
+  - Updates title, due date, and notes when they change in Canvas.
+  - Automatically completes Google Tasks that no longer appear in the Canvas To‑Do list.
+- **Windowed look‑ahead**: Only sync items due within `WINDOW_DAYS` (default 30).
+- **Plain, minimal code**: Easy to understand and self‑host.
 
-In Canvas: Account → Settings → New Access Token (or “Manage API access tokens”).
-Copy the token and keep it secret. (Schools can restrict this; if it’s disabled, you’ll need an admin-issued token or full OAuth.) 
+## Requirements
 
-#### Multi-user app:
+- Node.js 18+ (for global `fetch` and modern runtime APIs)
+- A Canvas LMS account and either:
+  - A personal access token (fastest for individual use), or
+  - A Canvas OAuth Developer Key if you're building a multi‑user app
+- A Google Cloud project with the Google Tasks API enabled
 
-Register an OAuth Developer Key in Canvas, then do OAuth on behalf of each user. (Canvas supports scope-limited keys; for testing, a manual token is fine.)
+## Installation
 
-### Google
+```bash
+git clone https://github.com/<you>/canvaslms-googlecal-linker
+cd canvaslms-googlecal-linker
+npm install
+```
 
-1. Login to Google Cloud Console
-2. Create a new project named: `CanvasLMS Google Tasks Link`
-3. Select the project
-4. Go to: `https://console.cloud.google.com/apis/library/tasks.googleapis.com`
-5. Click on the `Enable` button
-6. Press Create Credentials & Ensure Google Tasks API is Selected
-7. Select User Data
-8. ((2) OAuth Consent Screen) Enter same App Name, and use your email
-9. Press Add or Remove Scopes & Enable `../auth/tasks`
-10. Download the JSON file and rename it to `google-credentials.json`
+## Configuration (.env)
 
-Create a Google Cloud project → enable Google Tasks API → create an OAuth client (Web application) → set consent screen + scopes (https://www.googleapis.com/auth/tasks). Do a one-time local OAuth to get a refresh token; store it as a GitHub secret.
+Create a `.env` file in the project root with the following variables:
 
-## How it works
+```env
+# Canvas
+CANVAS_BASE=https://your-school.instructure.com
+CANVAS_TOKEN=your_canvas_access_token
 
-By a Github Action Cron Job, we run a process every 15 minutes to check for newly created todo items.
+# Google OAuth (from Google Cloud Console)
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+# Set after the first OAuth run (see below)
+GOOGLE_REFRESH_TOKEN=UNDEFINED
 
-Using Canvas's `GET /api/v1/users/self/todo` to get the student's ToDo list.
-Then using `POST tasks/v1/lists/{tasklistId}/tasks` from Google's API to create the tasks in Google Tasks.
+# Optional
+GOOGLE_TASKS_LIST_NAME=Canvas (auto)
+WINDOW_DAYS=30
+```
+
+Notes:
+- The app listens at `http://localhost:3000/oauth2callback` during the one‑time OAuth flow.
+- If you use Google OAuth, add this exact Authorized redirect URI in your OAuth client.
+
+## Google Cloud Setup (once)
+
+1. In the Google Cloud Console, create a project (e.g., “CanvasLMS Google Tasks Link”).
+2. Enable the “Google Tasks API”.
+3. Create OAuth credentials (Web application).
+4. On the Consent screen, add the `https://www.googleapis.com/auth/tasks` scope.
+5. Add `http://localhost:3000/oauth2callback` as an Authorized redirect URI.
+6. Copy your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` into `.env`.
+
+## First run: obtain a Google refresh token
+
+On the very first run, leave `GOOGLE_REFRESH_TOKEN` unset or set to `UNDEFINED`. Then run:
+
+```bash
+npm run run
+```
+
+What happens:
+- Your browser opens to Google's consent page.
+- After approving, you're redirected back to `http://localhost:3000/oauth2callback`.
+- The app prints a `GOOGLE_REFRESH_TOKEN`. Copy it into your `.env`.
+
+Subsequent runs will use this refresh token to authenticate without prompting.
+
+## Usage: run a sync
+
+```bash
+npm run run
+```
+
+Behavior:
+- Creates (or reuses) the list named by `GOOGLE_TASKS_LIST_NAME`.
+- Fetches Canvas To‑Dos via `GET /api/v1/users/self/todo`.
+- Normalizes items and upserts into Google Tasks.
+- Marks tasks as completed in Google if they are no longer present in Canvas.
