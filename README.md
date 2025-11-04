@@ -89,3 +89,16 @@ Behavior:
 - Fetches Canvas To‑Dos via `GET /api/v1/users/self/todo`.
 - Normalizes items and upserts into Google Tasks.
 - Marks tasks as completed in Google if they are no longer present in Canvas.
+
+## Refresh tokens: Testing vs Production
+
+If your GitHub Action starts failing with “invalid_grant: Token has been expired or revoked”, your Google OAuth consent screen is likely in Testing mode. In Testing, Google refresh tokens expire after 7 days.
+
+How to fix permanently:
+- Publish the OAuth consent screen to Production (Google Cloud Console → APIs & Services → OAuth consent screen → Publish App).
+- Re-run the local OAuth flow once to generate a new `GOOGLE_REFRESH_TOKEN`, then update your GitHub secret.
+- Ensure you keep using the same OAuth client ID/secret. Rotating/deleting the OAuth client or switching projects will revoke existing refresh tokens.
+
+Notes:
+- For personal use, you can keep the app “unverified” in Production; you’ll see an unverified warning and be limited to 100 users, but tokens won’t auto-expire after 7 days.
+- If you change your Google account password or manually revoke the app’s access, you’ll need to re-authorize to mint a new refresh token.
