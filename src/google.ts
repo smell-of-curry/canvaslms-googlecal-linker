@@ -24,10 +24,12 @@ export async function performLocalGoogleOAuth(): Promise<string> {
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/tasks"],
     prompt: "consent",
+    redirect_uri: REDIRECT_URI,
+    client_id: GOOGLE_CLIENT_ID || "",
   });
 
   console.log("[Google OAuth] Opening browser for consent...");
-  console.log(authorizeUrl);
+  console.log(`${authorizeUrl}`);
   tryOpenInBrowser(authorizeUrl);
 
   return await new Promise<string>((resolve, reject) => {
@@ -79,7 +81,7 @@ export async function performLocalGoogleOAuth(): Promise<string> {
       }
     });
 
-    server.listen(3000, () => {
+    server.listen(4000, () => {
       console.log("[Google OAuth] Listening on http://localhost:3000 ...");
     });
   });

@@ -12,7 +12,7 @@ export const {
   WINDOW_DAYS = "30", // look ahead this many days
 } = process.env;
 
-export const REDIRECT_URI = "http://localhost:3000/oauth2callback";
+export const REDIRECT_URI = "http://localhost:4000/oauth2callback";
 export const CANVAS_HEADERS = { Authorization: `Bearer ${CANVAS_TOKEN}` };
 
 /**
